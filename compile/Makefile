@@ -13,12 +13,24 @@ OBJ_FILES = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRC_FILES))
 CC = gcc
 CFLAGS = -I$(INCLUDE_DIR)
 
-asm: $(OBJ_FILES)
-	$(CC) -o $@ $^ $(CFLAGS)
+#parser
+LEX = flex
+LEX_IN_FILE = $(SRC_DIR)/parser/parser.l
+LEX_OUT_FILE = $(SRC_DIR)/parser/lex.yy.c
+LEX_EXECUTABLE = parser
+
+#main target
+asm: $(OBJ_FILES) PARSER
+	$(CC) -o $@ $< $(CFLAGS)
+	$(CC) -o $(LEX_EXECUTABLE) $(LEX_OUT_FILE) -lfl
 
 #create object files
 $(OBJ_FILES): $(SRC_FILES) $(HEADER_FILES) CREATE_MISSING_DIRS
 	$(CC) -c -o $@ $< $(CFLAGS)
+	
+
+PARSER: $(LEX_IN_FILE)
+	$(LEX) -o $(LEX_OUT_FILE) $(LEX_IN_FILE)
 
 #create directories if needed
 CREATE_MISSING_DIRS:
@@ -31,3 +43,4 @@ CREATE_MISSING_DIRS:
 clean:
 	rm -rf $(OBJ_FILES)
 	rm -rf asm
+	rm -rf $(LEX_OUT_FILE) $(LEX_EXECUTABLE)
