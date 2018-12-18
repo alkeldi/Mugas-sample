@@ -30,6 +30,7 @@ $(OBJ_FILES): $(SRC_FILES) CREATE_MISSING_DIRS
 $(SRC_FILES): $(LEX_IN)
 	$(LEX) -o $(LEX_OUT) $(LEX_IN)
 
+#Fake rule for generating missing directories
 CREATE_MISSING_DIRS:
 	mkdir -p $(OBJ_DIR) $(SRC_DIR) $(INCLUDE_DIR)
 
