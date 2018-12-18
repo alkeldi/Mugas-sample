@@ -1,5 +1,5 @@
-#ifndef DLList
-#define DLList
+#ifndef DLList_h
+#define DLList_h
 
 #include <stdlib.h>
 
