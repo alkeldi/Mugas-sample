@@ -1,7 +1,7 @@
 %{
   #include <stdio.h>
   #include <stdlib.h>
-  #include "../include/DLList.h"
+  #include <DLList.h>
   extern int yylex (void);
   void yyerror(char const *);
 
