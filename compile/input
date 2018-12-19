@@ -1,2 +1,4 @@
 helloddd:
+mov 898989, ebx
 mov eax, ebx
+db "Hello, world!",0xA

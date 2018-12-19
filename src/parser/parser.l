@@ -57,16 +57,17 @@
   yylval.strval = make_strval(yytext, yyleng); 
   return COMMA;
 }                                 
-[\n] {
-  yylval.strval = make_strval(yytext, yyleng); 
-  return NEWLINE;
-}
+
 [ \t]+ {
 
 }
-";"[.]*[\n] {
 
+";".*\n|\n {
+  yylval.strval = make_strval(yytext, yyleng); 
+  return NEWLINE;
 }
+
+
 [.]+ {
   printf("parser error: unexpected [%s]\n", yytext);
 }
