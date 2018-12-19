@@ -1,4 +1,6 @@
-helloddd:
+helloddd: mov ecx, edx
 mov 898989, ebx
 mov eax, ebx
 db "Hello, world!",0xA
+_start: mov ecx, edx
+global hi
