@@ -104,6 +104,7 @@ static int DLList_free(DLLNode *list)
     /* free all nodes */
     if (!DLList_remove(list, iter))
       return 0;
+    iter = iter->next;
   }
 
   /* free the sentinel */

@@ -28,7 +28,6 @@ struct data_block_s
 struct label_s
 {
   char *name;
-  void *address;
 };
 
 struct variable_declaration_s
@@ -63,4 +62,12 @@ struct line_s
   };
 };
 
+void mugas_parse();
+void cleanup_instruction(struct instruction_s *instruction);
+void cleanup_data_block(struct data_block_s *data_block);
+void cleanup_label(struct label_s *label);
+void cleanup_section_switch(struct section_switch_s *section_switch);
+void cleanup_variable_declaration(struct variable_declaration_s *variable_declaration);
+void cleanup_all_lines(DLLNode *lines_list);
+void mugas_cleanup();
 #endif

@@ -42,7 +42,6 @@ void print_label(struct label_s *label)
 {
   printf("label:{\n");
   printf("\tname: %s\n", label->name);
-  printf("\taddress: 0x%x\n", (unsigned int)label->address);
   printf("}\n");
 }
 void print_section_switch(struct section_switch_s *section_switch)
@@ -97,4 +96,8 @@ void print_all_lines(DLLNode *lines_list)
     }
     iter = iter->next;
   }
+}
+
+void mugas_log(){
+  print_all_lines(mugas_list);
 }

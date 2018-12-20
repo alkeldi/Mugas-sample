@@ -126,7 +126,6 @@ label:
   LEGAL_NAME COLON NEWLINE{
     $$ = (struct label_s*)malloc(sizeof(struct label_s));
     $$->name = $1;
-    $$->address = NULL;
   };
 
 section_switch:
