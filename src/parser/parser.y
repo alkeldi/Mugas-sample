@@ -257,14 +257,11 @@ datum:
   };
 
 label: 
-  LEGAL_NAME COLON {
+  LEGAL_NAME COLON NEWLINE{
     $$ = (struct label_s*)malloc(sizeof(struct label_s));
     $$->name = $1;
     $$->address = NULL;
-  }|
-  label NEWLINE {
-    $$ = $1;
-  }
+  };
 
 section_switch:
   SECTION_WORD SECTION_NAME NEWLINE {
@@ -288,7 +285,7 @@ variables_list:
     $$ = $1;
   };
 
-line: 
+line:
   label {
     $$ = (struct line_s*)malloc(sizeof(struct line_s));
     $$->type = LINE_TYPE_LABEL;
@@ -313,7 +310,11 @@ line:
     $$ = (struct line_s*)malloc(sizeof(struct line_s));
     $$->type = LINE_TYPE_VARIABLE_DECLARATION;
     $$->variable_declaration = $1;
-  };
+  }|
+  line NEWLINE {
+    $$ = $1;
+  }
+  
 lines_list: 
   line {
     $$ = DLList_init(NULL);
@@ -322,22 +323,17 @@ lines_list:
   lines_list line {
     DLList_addEnd($1, $2);
     $$ = $1;
-  }|
-  lines_list NEWLINE {
-    $$ = $1;
-  }|
-  NEWLINE lines_list {
-    $$ = $2;
   };
 
 all: 
   lines_list {
     print_all_lines($1);
+    // lines_list = $1;
   }
   
 %%
 
 void yyerror (char const *s) {
-  //TODO add all mallocs pointers into a list for cleanup
+  //TODO add all malloced pointers into a list for cleanup
    fprintf (stderr, "[%s]\n", s);
 }

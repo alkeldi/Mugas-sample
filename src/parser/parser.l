@@ -65,6 +65,7 @@
 }
 ":" {
   yylval.strval = make_strval(yytext, yyleng); 
+  // unput('\n');
   return COLON;
 }                                
 "," {
