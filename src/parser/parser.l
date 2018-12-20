@@ -67,7 +67,6 @@
   return NEWLINE;
 }
 
-
 [.]+ {
   printf("parser error: unexpected [%s]\n", yytext);
 }

@@ -179,14 +179,21 @@
 %type <variable_declaration_t> variable_declaration;
 %type <line_t> line;
 %type <list_t> operands_list data_list variables_list lines_list;
+%type <intval> new_lines;
 
 %start all
 
 %%
 
-
+new_lines:
+  NEWLINE {
+    $$ = 1;
+  }|
+  new_lines NEWLINE {
+    $$ = $1 + 1;
+  }
 instruction: 
-  OPCODE operands_list NEWLINE {
+  OPCODE operands_list new_lines {
     $$ = (struct instruction_s*)malloc(sizeof(struct instruction_s));
     $$->opcode = $1;
     $$->operands_list = $2;
@@ -225,7 +232,7 @@ operand:
   };
 
 data_block: 
-  DATA_TYPE data_list NEWLINE {
+  DATA_TYPE data_list new_lines {
     $$ = (struct data_block_s*)malloc(sizeof(struct data_block_s));
     $$->data_type = $1;
     $$->data_list = $2;
@@ -264,13 +271,13 @@ label:
   };
 
 section_switch:
-  SECTION_WORD SECTION_NAME NEWLINE {
+  SECTION_WORD SECTION_NAME new_lines {
     $$ = (struct section_switch_s *)malloc(sizeof(struct section_switch_s));
     $$->section = $2;
   };
 
 variable_declaration:
-  MODIFIER variables_list NEWLINE {
+  MODIFIER variables_list new_lines {
     $$ = (struct variable_declaration_s*)malloc(sizeof(struct variable_declaration_s));
     $$->modifier = $1;
     $$->variables_list = $2;
@@ -330,5 +337,5 @@ all:
 
 void yyerror (char const *s) {
   //TODO add all mallocs pointers into a list for cleanup
-  //  fprintf (stderr, "[%s]\n", s);
+   fprintf (stderr, "[%s]\n", s);
 }
