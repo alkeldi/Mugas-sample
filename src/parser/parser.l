@@ -3,6 +3,8 @@
   #include <stdlib.h>
   #include <string.h>
   #include "parser.y.h"
+  #include <DLList.h>
+  #include <mugas.h>
   char * make_strval(char*, unsigned);
 %}
 
@@ -96,6 +98,7 @@ char * make_strval(char *yytext, unsigned yyleng){
   if(yytext == NULL)
     return 0;
   char *str = (char *)malloc(yyleng + 1);
+  DLList_addEnd(mugas_allocated_values, str);
   str[yyleng] = 0;
   strcpy(str, yytext);
   return str;

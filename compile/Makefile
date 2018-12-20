@@ -7,7 +7,7 @@ PARSER_DIR = $(SRC_DIR)/parser
 
 #Compiler
 CC = gcc
-CFLAGS = -I$(INCLUDE_DIR) -lfl
+CFLAGS = -I$(INCLUDE_DIR) -lfl -g
 
 #parser
 LEX = flex
