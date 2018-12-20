@@ -18,7 +18,7 @@ typedef struct DLLNode
  * data: optional data to store in the sentinel.
  * return value: the sentinel node of the doubly linked list.
  */
-DLLNode *DLList_init(void *data)
+static DLLNode *DLList_init(void *data)
 {
   DLLNode *node = (DLLNode *)malloc(sizeof(DLLNode));
   node->next = node;
@@ -33,7 +33,7 @@ DLLNode *DLList_init(void *data)
  * data: data to add to the list.
  * return value: the newly created node, which contains the data.
  */
-DLLNode *DLList_addEnd(DLLNode *list, void *data)
+static DLLNode *DLList_addEnd(DLLNode *list, void *data)
 {
   if (!list)
     return NULL;
@@ -54,7 +54,7 @@ DLLNode *DLList_addEnd(DLLNode *list, void *data)
  * data: data to add to the list.
  * return value: the newly created node, which contains the data.
  */
-DLLNode *DLList_addFront(DLLNode *list, void *data)
+static DLLNode *DLList_addFront(DLLNode *list, void *data)
 {
   if (!list)
     return NULL;
@@ -76,7 +76,7 @@ DLLNode *DLList_addFront(DLLNode *list, void *data)
  *       if the node and the list have the same memory address, no action is taken.
  * return value: 1 on success, 0 on failure.
  */
-int DLList_remove(DLLNode *list, DLLNode *node)
+static int DLList_remove(DLLNode *list, DLLNode *node)
 {
   if (!node || !list || list == node)
     return 0;
@@ -93,7 +93,7 @@ int DLList_remove(DLLNode *list, DLLNode *node)
  * list: the sentinel of the doubly linked list.
  * return value: 1 on success, 0 on failure.
  */
-int DLList_free(DLLNode *list)
+static int DLList_free(DLLNode *list)
 {
   if (!list)
     return 0;
