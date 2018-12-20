@@ -67,9 +67,19 @@
   return NEWLINE;
 }
 
+<<EOF>> { 
+  static int firstone = 1;
+  if(firstone){
+    firstone = 0;
+    return NEWLINE;
+  }
+  else return 0;
+}
+
 [.]+ {
   printf("parser error: unexpected [%s]\n", yytext);
 }
+
 
 %%
 
