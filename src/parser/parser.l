@@ -6,13 +6,27 @@
   char * make_strval(char*, unsigned);
 %}
 
-
 %%
 
 \"(\\.|[^"])*\" {
   yylval.strval = make_strval(yytext, yyleng); 
   return STRING;
 }
+
+;[^\n]* {
+
+}
+
+[ \t]+ {
+
+}
+
+[\n]+ {
+  yylval.strval = make_strval(yytext, yyleng);
+  return NEWLINE;
+}
+
+
 "global"|"extern" {
   yylval.strval = make_strval(yytext, yyleng); 
   return MODIFIER;
@@ -29,7 +43,7 @@
   yylval.strval = make_strval(yytext, yyleng);
   return DATA_TYPE;
 }
-"mov"|"add"|"sub"|"push" {
+"mov"|"add"|"sub"|"push"|"int" {
   yylval.strval = make_strval(yytext, yyleng);
   return OPCODE;
 }
@@ -58,14 +72,7 @@
   return COMMA;
 }                                 
 
-[ \t]+ {
 
-}
-
-";".*\n|\n {
-  yylval.strval = make_strval(yytext, yyleng); 
-  return NEWLINE;
-}
 
 <<EOF>> { 
   static int firstone = 1;
@@ -76,8 +83,9 @@
   else return 0;
 }
 
-[.]+ {
-  printf("parser error: unexpected [%s]\n", yytext);
+. {
+  fprintf(stderr,"parser error: unexpected [%s]\n", yytext);
+  exit(1);
 }
 
 

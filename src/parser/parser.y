@@ -179,21 +179,14 @@
 %type <variable_declaration_t> variable_declaration;
 %type <line_t> line;
 %type <list_t> operands_list data_list variables_list lines_list;
-%type <intval> new_lines;
 
 %start all
 
 %%
 
-new_lines:
-  NEWLINE {
-    $$ = 1;
-  }|
-  new_lines NEWLINE {
-    $$ = $1 + 1;
-  }
+
 instruction: 
-  OPCODE operands_list new_lines {
+  OPCODE operands_list NEWLINE {
     $$ = (struct instruction_s*)malloc(sizeof(struct instruction_s));
     $$->opcode = $1;
     $$->operands_list = $2;
@@ -232,7 +225,7 @@ operand:
   };
 
 data_block: 
-  DATA_TYPE data_list new_lines {
+  DATA_TYPE data_list NEWLINE {
     $$ = (struct data_block_s*)malloc(sizeof(struct data_block_s));
     $$->data_type = $1;
     $$->data_list = $2;
@@ -268,16 +261,19 @@ label:
     $$ = (struct label_s*)malloc(sizeof(struct label_s));
     $$->name = $1;
     $$->address = NULL;
-  };
+  }|
+  label NEWLINE {
+    $$ = $1;
+  }
 
 section_switch:
-  SECTION_WORD SECTION_NAME new_lines {
+  SECTION_WORD SECTION_NAME NEWLINE {
     $$ = (struct section_switch_s *)malloc(sizeof(struct section_switch_s));
     $$->section = $2;
   };
 
 variable_declaration:
-  MODIFIER variables_list new_lines {
+  MODIFIER variables_list NEWLINE {
     $$ = (struct variable_declaration_s*)malloc(sizeof(struct variable_declaration_s));
     $$->modifier = $1;
     $$->variables_list = $2;
@@ -326,13 +322,19 @@ lines_list:
   lines_list line {
     DLList_addEnd($1, $2);
     $$ = $1;
-  };
-all: 
-  lines_list {
-    //ready to pass the list of lines to the assembler :)
-    print_all_lines($1);
+  }|
+  lines_list NEWLINE {
+    $$ = $1;
+  }|
+  NEWLINE lines_list {
+    $$ = $2;
   };
 
+all: 
+  lines_list {
+    print_all_lines($1);
+  }
+  
 %%
 
 void yyerror (char const *s) {
