@@ -1,6 +1,9 @@
 .DS_Store
 .vscode
 compile/asm
+compile/*.out
+compile/*.o
+compile/*.c
 src/parser/*.c
 src/parser/*.h
 obj
