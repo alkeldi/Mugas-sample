@@ -3,7 +3,7 @@
 #include <mugas_log.h>
 int main()
 {
+  mugas_init();
   mugas_parse();
-  mugas_log();
   mugas_cleanup();
 }

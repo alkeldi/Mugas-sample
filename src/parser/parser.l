@@ -3,106 +3,103 @@
   #include <stdlib.h>
   #include <string.h>
   #include "parser.y.h"
-  #include <DLList.h>
+  #include <mugas_types.h>
+  #include <mugas_helper.h>
   #include <mugas.h>
-  char * make_strval(char*, unsigned);
+
+  size_t line = 1;
+  size_t column = 1;
 %}
 
+HEX ((0X[0-9A-F]+)|(0x[0-9a-f]+))
+DEC (0+|([1-9][0-9]*))
+OCT (0[0-7]+)
+BIN (0[bB][01]+)
+NUMBER {HEX}|{DEC}|{OCT}|{BIN}
+
+NEWLINE \n
+COLON \:
+COMMA \,
+OPEN_BRACKET \[
+CLOSE_BRACKET \]
+
+OPERATOR \+|\-|\*
+
+STRING \"(\\.|[^"])*\" 
+COMMENT (\;|\#).+
+SPACE [ \t]+
+NAME [._@$0-9a-zA-Z]+
+
 %%
 
-\"(\\.|[^"])*\" {
-  yylval.strval = make_strval(yytext, yyleng); 
-  return STRING;
+{NUMBER} {
+  column += yyleng;
+  printf("[NUMBER]");
 }
+{OPERATOR} {
+  column += yyleng;
+  printf("[OPERATOR]");
+}
+{OPEN_BRACKET} {
+  column += yyleng;
+  printf("[OPEN_BRACKET]");
+}
+{CLOSE_BRACKET} {
+  column += yyleng;
+  printf("[CLOSE_BRACKET]");
+}
+{COLON} {
+  column += yyleng;
+  printf("[COLON]");
+}
+{COMMA} {
+  column += yyleng;
+  printf("[COMMA]");
+}
+{NEWLINE} {
+  line++;
+  column = 0;
+  printf("[NEWLINE]\n");
+}
+{NAME} {
+  column += yyleng;
 
-;[^\n]* {
+  /* make a capitalized copy */
+  char yytext_capital[yyleng+1];
+  to_upper_case(yytext, yytext_capital);
 
-}
-
-[ \t]+ {
-
-}
-
-[\n]+ {
-  yylval.strval = make_strval(yytext, yyleng);
-  return NEWLINE;
-}
-
-
-"global"|"extern" {
-  yylval.strval = make_strval(yytext, yyleng); 
-  return MODIFIER;
-}
-"section" {
-  yylval.strval = make_strval(yytext, yyleng); 
-  return SECTION_WORD;
-}
-[.][_a-zA-Z0-9]+ {
-  yylval.strval = make_strval(yytext, yyleng); 
-  return SECTION_NAME;
-}
-"db"|"dw"|"dd"|"dq"|"dt" {
-  yylval.strval = make_strval(yytext, yyleng);
-  return DATA_TYPE;
-}
-"mov"|"add"|"sub"|"push"|"int" {
-  yylval.strval = make_strval(yytext, yyleng);
-  return OPCODE;
-}
-"eax"|"ebx"|"ecx"|"edx" {
-  yylval.strval = make_strval(yytext, yyleng);
-  return REGISTER;
-}
-[0-9]+|(0[xX][0-9a-fA-F]+) {
-  yylval.strval = make_strval(yytext, yyleng);
-  return NUMBER;
-}
-\[[_a-zA-Z]+[_a-zA-Z0-9]*\] {
-  yylval.strval = make_strval(yytext, yyleng);
-  return MEMORY_CONTENT;
-}
-[_a-zA-Z]+[_a-zA-Z0-9]* {
-  yylval.strval = make_strval(yytext, yyleng); 
-  return LEGAL_NAME; 
-}
-":" {
-  yylval.strval = make_strval(yytext, yyleng); 
-  // unput('\n');
-  return COLON;
-}                                
-"," {
-  yylval.strval = make_strval(yytext, yyleng); 
-  return COMMA;
-}                                 
-
-
-
-<<EOF>> { 
-  static int firstone = 1;
-  if(firstone){
-    firstone = 0;
-    return NEWLINE;
+  /* register -> capitaalized */
+  registers_table_entry_t * reg = search_registers_table(yytext_capital);
+  if(reg){
+    printf("[REG]");
   }
-  else return 0;
+
+  /* instruction -> capitaalized */
+  else if(is_instruction_name(yytext_capital)){
+    printf("[INST_NAME]");
+  }
+
+  /* directive -> case sensitive*/
+  else if(is_directive_name(yytext)){
+    printf("[DCV_NAME]");
+  }
+
+  /* label -> case sensitive */
+  else printf("[LABEL]");
 }
+
+{STRING} {
+  column += yyleng;
+  printf("[STRING]");
+}
+{SPACE}|{COMMENT} {}
+
 
 . {
-  fprintf(stderr,"parser error: unexpected [%s]\n", yytext);
-  exit(1);
+  column += yyleng;
+  fprintf(stderr, "\nERROR at %u:%u\n", line, column);
 }
-
-
 %%
-
-char * make_strval(char *yytext, unsigned yyleng){
-  if(yytext == NULL)
-    return 0;
-  char *str = (char *)malloc(yyleng + 1);
-  DLList_addEnd(mugas_allocated_values, str);
-  str[yyleng] = 0;
-  strcpy(str, yytext);
-  return str;
-}
 
 int yywrap(){
   return 1;
