@@ -7,13 +7,20 @@
   extern size_t line;
   extern size_t column;
   void yyerror(char const *);
-
+  memory32_token_t * make_memory32(token_t * token){
+    memory32_token_t *mem = malloc(sizeof(memory32_token_t));
+    memset(mem, 0, sizeof(memory32_token_t));
+    mem->token.line = token->line;
+    mem->token.column = token->column;
+    return mem;
+  }
 %}
 
 
 %union {
   struct integer_token_t *integer;
   struct register_token_t *reg;
+  struct memory32_token_t *mem32;
   struct token_t *token;
 }
 
@@ -34,6 +41,7 @@
 
 /* nonterminals */
 %type <integer> expresion;
+%type <mem32> memory memory_32 modrm //sib no_base no_disp disp_base scaled_index
 
 
 %start all
@@ -49,9 +57,39 @@ line:
     printf("memory\n");
   };
 
-memory: OPEN_BRACKET memory_32 CLOSE_BRACKET;
+memory: 
+  OPEN_BRACKET memory_32 CLOSE_BRACKET {
+    $$ = $2;
+    printf("reg: %d    mod: %d   disp: %lld\n", $$->rm_reg.reg_value, $$->mod, $$->disp);
+  };
 memory_32: modrm | sib ;
-modrm: REG | expresion | REG PLUS expresion | REG MINUS expresion | expresion PLUS REG;
+modrm: 
+  REG {
+    $$ = make_memory32(&$1->token);
+    $$->mod = 0;
+    $$->rm_reg = $1->reg;
+  }|
+  expresion {
+    $$ = make_memory32(&$1->token);
+    $$->mod = 0;
+    $$->rm_reg.reg_value = 5;
+  }|
+  REG PLUS expresion {
+    $$ = make_memory32(&$1->token);
+    $$->rm_reg = $1->reg;
+    $$->disp = $3->num;
+  }| 
+  REG MINUS expresion {
+    $$ = make_memory32(&$1->token);
+    $$->rm_reg = $1->reg;
+    $$->disp = -1 * $3->num;
+  }| 
+  expresion PLUS REG {
+    $$ = make_memory32(&$1->token);
+    $$->rm_reg = $3->reg;
+    $$->disp = $1->num;
+  };
+
 sib: no_disp | no_base | disp_base;
 no_base: scaled_index PLUS expresion | scaled_index MINUS expresion | expresion PLUS scaled_index;
 no_disp: REG PLUS scaled_index | scaled_index PLUS REG;

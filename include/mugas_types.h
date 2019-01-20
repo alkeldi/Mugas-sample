@@ -37,4 +37,22 @@ typedef struct register_token_t {
   registers_table_entry_t  reg;
   token_t token;
 }register_token_t;
+/************************************************** MEMORY TOKEN *************************************************/
+typedef struct memory32_token_t {
+  
+  /* mod_rm */
+  unsigned char mod;
+  registers_table_entry_t rm_reg;
+
+  /* sib */
+  unsigned char scale;
+  registers_table_entry_t index;
+  registers_table_entry_t base;
+
+  /* disp*/
+  long long int  disp;
+
+  /* info */
+  token_t token;
+} memory32_token_t;
 #endif
