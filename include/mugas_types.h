@@ -38,14 +38,20 @@ typedef struct register_token_t {
   token_t token;
 }register_token_t;
 /************************************************** MEMORY TOKEN *************************************************/
+enum memory32_types{
+  SIB_BASE, SIB_DISP, SIB_BASE_AND_DISP,
+  MODRM_REG, MODRM_DISP, MODRM_REG_AND_DISP
+};
 typedef struct memory32_token_t {
-  
+  /* type */
+  enum memory32_types type;
+
   /* mod_rm */
   unsigned char mod;
   registers_table_entry_t rm_reg;
 
   /* sib */
-  unsigned char scale;
+  long long int scale;
   registers_table_entry_t index;
   registers_table_entry_t base;
 
