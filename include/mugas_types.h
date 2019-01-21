@@ -48,17 +48,30 @@ typedef struct memory32_token_t {
 
   /* mod_rm */
   unsigned char mod;
-  registers_table_entry_t rm_reg;
+  register_token_t rm;
 
   /* sib */
-  long long int scale;
-  registers_table_entry_t index;
-  registers_table_entry_t base;
+  integer_token_t scale;
+  register_token_t index;
+  register_token_t base;
 
   /* disp*/
-  long long int  disp;
+  integer_token_t  disp;
 
   /* info */
   token_t token;
 } memory32_token_t;
+
+/************************************************** OPERAND TOKEN *************************************************/
+enum operand_types {
+  MEMORY, REGISTER
+};
+typedef struct operand_token_t {
+  enum operand_types type;
+  union {
+    memory32_token_t memory;
+    register_token_t reg;
+  };
+}operand_token_t;
+
 #endif

@@ -90,7 +90,9 @@ static void DEBUG(char * fun_name, char * str){
 }
 
 static void ERROR(char * text, char * msg, size_t line, size_t column){
-  fprintf(stderr, "[%02u:%02u] -> [%s] %s\n", line, column, text, msg);
+  if(text)
+    fprintf(stderr, "[%02u:%02u] -> [%s] %s\n", line, column, text, msg);
+  else fprintf(stderr, "[%02u:%02u] -> %s\n", line, column, msg);
   exit(1);
 }
 
