@@ -145,10 +145,11 @@ instruction_t * get_instruction1(token_t *opcode, operand_token_t *operand){
   else if(operand->type == MEMORY32 || operand->type == MEMORY8 || operand->type == MEMORY16){
     /* size */
     char mem_sz[4];
+    int mem_sz_int;
     switch(operand->type){
-      case MEMORY32: strcpy(mem_sz, "32"); break;
-      case MEMORY8 : strcpy(mem_sz,  "8"); break;
-      case MEMORY16: strcpy(mem_sz, "16"); break;
+      case MEMORY32: strcpy(mem_sz, "32"); mem_sz_int = 32; break;
+      case MEMORY8 : strcpy(mem_sz,  "8"); mem_sz_int = 8 ; break;
+      case MEMORY16: strcpy(mem_sz, "16"); mem_sz_int = 16; break;
     }
     
     /* try r/m */
@@ -181,13 +182,18 @@ instruction_t * get_instruction1(token_t *opcode, operand_token_t *operand){
 
     if(operand->mem.structure == SIB_BASE)
       formatted.sib.size = 1;
-    else if(operand->mem.structure == MODRM_DISP || operand->mem.structure == MODRM_REG_AND_DISP)
-      formatted.disp.size = get_number_size(operand->mem.disp.num)/8;
+    else if(operand->mem.structure == MODRM_DISP || operand->mem.structure == MODRM_REG_AND_DISP){
+      int sz = get_number_size(operand->mem.disp.num);
+      if(sz == 8) formatted.disp.size = 1;
+      else if(mem_sz_int >= sz) formatted.disp.size = mem_sz_int/8;
+    }
     else if(operand->mem.structure == SIB_DISP || operand->mem.structure == SIB_BASE_AND_DISP){
         formatted.sib.size = 1;
-        formatted.disp.size = get_number_size(operand->mem.disp.num)/8;
+        int sz = get_number_size(operand->mem.disp.num);
+        if(sz == 8) formatted.disp.size = 1;
+        else if(mem_sz_int >= sz) formatted.disp.size = mem_sz_int/8;
     }
-
+    
     return make_instruction(&formatted);
   }
 
@@ -200,10 +206,6 @@ instruction_t * get_instruction2(token_t *opcode, operand_token_t *operand1, ope
   formatted_instruction_t formatted;
   memset(&formatted, 0, sizeof(formatted_instruction_t));
 
-  // char key[MAX_READABLE_ENCODING_LEN];
-  // to_upper_case(opcode->text, key);
-  // strcat(key, " ");
-  // size_t last_try = strlen(key);
 
   return NULL;
 }
