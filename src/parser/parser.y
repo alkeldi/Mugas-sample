@@ -38,7 +38,7 @@
 
 /* nonterminals */
 %type <integer> expresion
-%type <mem32> memory memory_32 modrm scaled_index disp base disp_and_base sib    
+%type <mem32> memory_32 modrm scaled_index disp base disp_and_base sib    
 %type <operand> operand
 %type <instruction> instruction
 %start all
@@ -62,8 +62,13 @@ instruction:
     }
   }|
   OPCODE operand{
+    $$ = get_instruction1($1, $2);
+    if($$){
+      print_instruction($$);
+    }
   }|
   OPCODE operand COMMA operand{
+    $$ = get_instruction2($1, $2, $4);
   }
 ;
 
@@ -71,27 +76,31 @@ operand:
   REG {
     $$ = malloc(sizeof(operand_token_t));
     $$->reg = *$1;
-    $$->type = REGISTER;
+    $$->type = REGISTER32;
+    if(!strcmp($1->reg.reg_type, "r8"))       $$->type = REGISTER8;
+    else if(!strcmp($1->reg.reg_type, "r32")) $$->type = REGISTER32;
+    else if(!strcmp($1->reg.reg_type, "r16")) $$->type = REGISTER16;
+    else ERROR_WITH_TOKEN(&$1->token, "bad register type.");
+
   }|
-  memory {
+  memory_32 {
     $$ = malloc(sizeof(operand_token_t));
     $$->mem = *$1;
-    $$->type = MEMORY;
+    $$->type = MEMORY32;
   }|
   expresion {
     $$ = malloc(sizeof(operand_token_t));
     $$->imm = *$1;
-    $$->type = IMMEDIATE;
+    /* set operand type */
+    int sz = get_number_size($1->num);
+    if     (sz == 8 ) $$->type = IMMEDIATE8;
+    else if(sz == 32) $$->type = IMMEDIATE32;
+    else if(sz == 16) $$->type = IMMEDIATE16;
+    else ERROR_WITH_TOKEN(&$1->token, "bad constant size.");
   }
 ;
 
-memory: 
-   memory_32 {
-    $$ = $1;
-    printf("modrm -> mod : %d,    rm: %d,  disp: %lld\n", $$->mod, $$->rm.reg.reg_value, $$->disp.num);
-    printf("sib   -> base: %d, scale: %lld, index: %d\n", $$->base.reg.reg_value, $$->scale.num, $$->index.reg.reg_value);
-  }
-;
+
 memory_32: 
   OPEN_BRACKET modrm CLOSE_BRACKET{
     $$ = $2;

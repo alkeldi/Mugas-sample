@@ -53,4 +53,5 @@ typedef struct instruction_t {
 extern void print_instruction(instruction_t *instruction);
 extern instruction_t *make_instruction(formatted_instruction_t *formatted);
 extern int fill_formatted_instruction_with_defaults(formatted_instruction_t *formatted, char *_default_encoding);
+extern int init_formatted_instruction(formatted_instruction_t *formatted, char *key);
 #endif

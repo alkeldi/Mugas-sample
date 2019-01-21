@@ -9,7 +9,9 @@ enum memory32_structure{
 };
 
 enum operand_type {
-  MEMORY, REGISTER, IMMEDIATE
+  MEMORY8, REGISTER8, IMMEDIATE8,
+  MEMORY16, REGISTER16, IMMEDIATE16,
+  MEMORY32, REGISTER32, IMMEDIATE32
 };
 
 typedef struct token_t {
@@ -50,8 +52,11 @@ typedef struct operand_token_t {
 }operand_token_t;
 
 
- memory32_token_t * init_memory32();
+memory32_token_t * init_memory32();
 extern int verify_memory32_modrm(memory32_token_t *memory);
 extern int verify_memory32_sib(memory32_token_t *memory);
 extern instruction_t * get_instruction0(token_t *opcode);
+extern instruction_t * get_instruction1(token_t *opcode, operand_token_t *operand);
+extern instruction_t * get_instruction2(token_t *opcode, operand_token_t *operand1, operand_token_t *operand2);
+
 #endif

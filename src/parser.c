@@ -84,18 +84,78 @@
     }
   }
 
-
 instruction_t * get_instruction0(token_t *opcode){
   formatted_instruction_t formatted;
   memset(&formatted, 0, sizeof(formatted_instruction_t));
 
   /* make key */
-  char key[opcode->len+1];
+  char key[MAX_READABLE_ENCODING_LEN];
   to_upper_case(opcode->text, key);
 
-  inst_info_t *info = search_instructions_table(key);
-  if(!fill_formatted_instruction_with_defaults(&formatted, info->hex_encoding))
-    return NULL;
+  if(init_formatted_instruction(&formatted, key))
+    return make_instruction(&formatted);
+  else return NULL;
+}
 
-  return make_instruction(&formatted);
+instruction_t * get_instruction1(token_t *opcode, operand_token_t *operand){
+  formatted_instruction_t formatted;
+  memset(&formatted, 0, sizeof(formatted_instruction_t));
+
+  char key[MAX_READABLE_ENCODING_LEN];
+  to_upper_case(opcode->text, key);
+  strcat(key, " ");
+  size_t last_try = strlen(key);
+
+  if(operand->type == REGISTER32 || operand->type == REGISTER8 || operand->type == REGISTER16){
+    /* size */
+    char reg_sz[4];
+    switch(operand->type){
+      case REGISTER32: strcpy(reg_sz, "32"); break;
+      case REGISTER8 : strcpy(reg_sz,  "8"); break;
+      case REGISTER16: strcpy(reg_sz, "16"); break;
+    }
+
+    /* try reg name */
+    strcat(key, operand->reg.reg.reg_name);
+    if(init_formatted_instruction(&formatted, key))
+      return make_instruction(&formatted);
+    
+    /* try r/m */
+    key[last_try] = 0;
+    strcat(key, "r/m");
+    strcat(key, reg_sz);
+    if(init_formatted_instruction(&formatted, key)){
+      formatted.modrm.mod = 0b11;
+      formatted.modrm.rm = operand->reg.reg.reg_value;
+      return make_instruction(&formatted);
+    }
+    
+    /* try r */
+    key[last_try] = 0;
+    strcat(key, "r");
+    strcat(key, reg_sz);
+    if(init_formatted_instruction(&formatted, key)){
+      formatted.modrm.reg_op = operand->reg.reg.reg_value;
+      return make_instruction(&formatted);
+    }
+    
+    /* can't find */
+    return NULL;
+  }
+
+  /* TODO memory and const */
+
+  else return NULL;
+}
+
+instruction_t * get_instruction2(token_t *opcode, operand_token_t *operand1, operand_token_t *operand2){
+  formatted_instruction_t formatted;
+  memset(&formatted, 0, sizeof(formatted_instruction_t));
+
+  // char key[MAX_READABLE_ENCODING_LEN];
+  // to_upper_case(opcode->text, key);
+  // strcat(key, " ");
+  // size_t last_try = strlen(key);
+
+  return NULL;
 }
