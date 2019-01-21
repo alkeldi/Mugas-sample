@@ -142,8 +142,56 @@ instruction_t * get_instruction1(token_t *opcode, operand_token_t *operand){
     /* can't find */
     return NULL;
   }
+  else if(operand->type == MEMORY32 || operand->type == MEMORY8 || operand->type == MEMORY16){
+    /* size */
+    char mem_sz[4];
+    switch(operand->type){
+      case MEMORY32: strcpy(mem_sz, "32"); break;
+      case MEMORY8 : strcpy(mem_sz,  "8"); break;
+      case MEMORY16: strcpy(mem_sz, "16"); break;
+    }
+    
+    /* try r/m */
+    key[last_try] = 0;
+    strcat(key, "r/m");
+    strcat(key, mem_sz);
+    if(!init_formatted_instruction(&formatted, key)){
+      /* try m */
+      key[last_try] = 0;
+      strcat(key, "m");
+      strcat(key, mem_sz);
+      if(!init_formatted_instruction(&formatted, key)){
+        /* can't find */
+        return NULL;
+      }
+    }
+    formatted.modrm.mod = operand->mem.mod;
+    formatted.modrm.rm = operand->mem.rm.reg.reg_value;
+    formatted.sib.base =  operand->mem.base.reg.reg_value;
+    formatted.sib.index =  operand->mem.index.reg.reg_value;
+    switch(operand->mem.scale.num){
+      case 1: formatted.sib.scale = 0; break;
+      case 2: formatted.sib.scale = 1; break;
+      case 4: formatted.sib.scale = 2; break;
+      case 8: formatted.sib.scale = 3; break;
+    }
 
-  /* TODO memory and const */
+    printf("%d\n", formatted.sib.scale);
+    memcpy(formatted.disp.data, &operand->mem.disp.num, 4);
+
+    if(operand->mem.structure == SIB_BASE)
+      formatted.sib.size = 1;
+    else if(operand->mem.structure == MODRM_DISP || operand->mem.structure == MODRM_REG_AND_DISP)
+      formatted.disp.size = get_number_size(operand->mem.disp.num)/8;
+    else if(operand->mem.structure == SIB_DISP || operand->mem.structure == SIB_BASE_AND_DISP){
+        formatted.sib.size = 1;
+        formatted.disp.size = get_number_size(operand->mem.disp.num)/8;
+    }
+
+    return make_instruction(&formatted);
+  }
+
+  /* TODO const */
 
   else return NULL;
 }
