@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <mugas.h>
 #include <mugas_helper.h>
-#include <mugas_types.h>
+#include <parser.h>
 #include <stdio.h>
 
 extern int yyparse(void);
@@ -45,16 +45,14 @@ TST *init_instructions_table(char *instructions_file)
     rtrim(readable_encoding);
 
     /* add instruction into instructions_names table */
-    char *instruction_name = strtok(readable_encoding, ", ");
-    if (!instruction_name)
-    {
-      instruction_name = readable_encoding;
-    }
+    char readable_encoding_cpy[strlen(readable_encoding)];
+    strcpy(readable_encoding_cpy, readable_encoding);
+    char *instruction_name = strtok(readable_encoding_cpy, ", ");
     TST_put(instructions_names, instruction_name, NULL);
 
     /* create instruction table entry */
-    instructions_table_entry_t *table_entry = malloc(sizeof(instructions_table_entry_t));
-    memset(table_entry, 0, sizeof(instructions_table_entry_t));
+    inst_info_t *table_entry = malloc(sizeof(inst_info_t));
+    memset(table_entry, 0, sizeof(inst_info_t));
     strcpy(table_entry->hex_encoding, hex_encoding);
     strcpy(table_entry->readable_encoding, readable_encoding);
 
@@ -109,8 +107,8 @@ TST *init_registers_table(char *registers_file)
     rtrim(reg_type);
 
     /* create register table entry */
-    registers_table_entry_t *table_entry = malloc(sizeof(registers_table_entry_t));
-    memset(table_entry, 0, sizeof(registers_table_entry_t));
+    reg_t *table_entry = malloc(sizeof(reg_t));
+    memset(table_entry, 0, sizeof(reg_t));
     strcpy(table_entry->reg_name, reg_name);
     strcpy(table_entry->reg_type, reg_type);
     table_entry->reg_value = (unsigned char)atoi(reg_value);
@@ -162,8 +160,13 @@ TST *init_directives_names(char *directives_file)
   return directives_names;
 }
 
+/* search for instruction */
+inst_info_t * search_instructions_table(char *key){
+  return TST_get(instructions_table, key);
+}
+
 /* search for a register - key should be captilized */
-registers_table_entry_t *search_registers_table(char *key)
+reg_t *search_registers_table(char *key)
 {
   return TST_get(registers_table, key);
 }

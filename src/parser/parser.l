@@ -3,7 +3,7 @@
   #include <stdlib.h>
   #include <string.h>
   #include "parser.y.h"
-  #include <mugas_types.h>
+  #include <parser.h>
   #include <mugas_helper.h>
   #include <mugas.h>
   size_t line = 1;
@@ -21,7 +21,7 @@
     ERROR(text, msg, line, column);
   }
   void DEBUG_LEX(char * fun_name, char * str){
-    // DEBUG(fun_name, str);
+    DEBUG(fun_name, str);
   }
 %}
 
@@ -179,11 +179,11 @@ NAME [._@$0-9a-zA-Z]+
   to_upper_case(yytext, yytext_capital);
 
   /* register -> capitalized */
-  registers_table_entry_t * reg = search_registers_table(yytext_capital);
+  reg_t * reg = search_registers_table(yytext_capital);
   if(reg){
     DEBUG_LEX(NULL, "[REG]");
-    yylval.reg = malloc(sizeof(register_token_t));
-    memcpy(&yylval.reg->reg, reg, sizeof(registers_table_entry_t));
+    yylval.reg = malloc(sizeof(reg_token_t));
+    memcpy(&yylval.reg->reg, reg, sizeof(reg_t));
     store_token(&yylval.reg->token, yytext, yyleng);
     return REG;
   }

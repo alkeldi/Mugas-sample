@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <limits.h>
 #include <stdio.h>
+#include <parser.h>
 
 /* check if empty or commented line */
 static int is_ignored(char *line, size_t len)
@@ -100,5 +101,29 @@ static void ERROR_WITH_TOKEN(token_t *token, char * msg){
   ERROR(token->text, msg, token->line, token->column);
 }
 
+static unsigned char hex_to_byte(char *hex)
+{
+  return (unsigned char)strtol(hex, NULL, 16);
+}
 
+static int is_hex_n(char *str, size_t n)
+{
+  if (!str)
+    return 0;
+  for (size_t i = 0; i < n; i++)
+  {
+    if (str[i] >= 48 && str[i] <= 57)
+      continue;
+    if (str[i] >= 65 && str[i] <= 70)
+      continue;
+    if (str[i] >= 97 && str[i] <= 102)
+      continue;
+    return 0;
+  }
+  return 1;
+}
+static int is_hex(char *str)
+{
+  return is_hex_n(str, strlen(str));
+}
 #endif
