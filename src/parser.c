@@ -183,22 +183,37 @@ instruction_t * get_instruction1(token_t *opcode, operand_token_t *operand){
     if(operand->mem.structure == SIB_BASE)
       formatted.sib.size = 1;
     else if(operand->mem.structure == MODRM_DISP || operand->mem.structure == MODRM_REG_AND_DISP){
-      int sz = get_number_size(operand->mem.disp.num);
-      if(sz == 8) formatted.disp.size = 1;
-      else if(mem_sz_int >= sz) formatted.disp.size = mem_sz_int/8;
+      if(get_number_size(operand->mem.disp.num) == 8) formatted.disp.size = 1;
+      else formatted.disp.size = mem_sz_int/8;
     }
     else if(operand->mem.structure == SIB_DISP || operand->mem.structure == SIB_BASE_AND_DISP){
         formatted.sib.size = 1;
-        int sz = get_number_size(operand->mem.disp.num);
-        if(sz == 8) formatted.disp.size = 1;
-        else if(mem_sz_int >= sz) formatted.disp.size = mem_sz_int/8;
+        if(get_number_size(operand->mem.disp.num) == 8) formatted.disp.size = 1;
+        else formatted.disp.size = mem_sz_int/8;
     }
-    
+
     return make_instruction(&formatted);
   }
+  else if(operand->type == IMMEDIATE8 || operand->type == IMMEDIATE16 || operand->type == IMMEDIATE32){
+    char imm_sz[4];
+    int imm_sz_int;
+    switch(operand->type){
+      case IMMEDIATE8 : strcpy(imm_sz,  "8"); imm_sz_int = 8 ; break;
+      case IMMEDIATE16: strcpy(imm_sz, "16"); imm_sz_int = 16; break;
+      case IMMEDIATE32: strcpy(imm_sz, "32"); imm_sz_int = 32; break;
+    }
+    key[last_try] = 0;
+    strcat(key, "imm");
+    strcat(key, imm_sz);
+    
+    if(!init_formatted_instruction(&formatted, key))
+      return NULL;
 
-  /* TODO const */
-
+    formatted.imm.size = imm_sz_int/8;
+    memcpy(formatted.imm.data, &operand->imm.num, 4);
+        
+    return make_instruction(&formatted);
+  }
   else return NULL;
 }
 
