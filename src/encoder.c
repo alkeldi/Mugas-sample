@@ -210,8 +210,10 @@ int init_formatted_instruction(formatted_instruction_t *formatted, char *key){
   if(!formatted || !key)
     return 0;
   inst_info_t *info = search_instructions_table(key);
+
   if(!info)
     return 0;
+
   if(!fill_formatted_instruction_with_defaults(formatted, info->hex_encoding))
     return 0;
   return 1;

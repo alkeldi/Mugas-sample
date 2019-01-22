@@ -50,25 +50,28 @@ all: lines;
 lines: line | line lines;
 
 line: 
-  instruction NEWLINE {
+  instruction{
     printf("->instruction\n");
   };
 
 instruction: 
-  OPCODE {
+  OPCODE NEWLINE{
     $$ = get_instruction0($1);
     if($$){
       print_instruction($$);
     }
   }|
-  OPCODE operand{
+  OPCODE operand NEWLINE{
     $$ = get_instruction1($1, $2);
     if($$){
       print_instruction($$);
     }
   }|
-  OPCODE operand COMMA operand{
+  OPCODE operand COMMA operand NEWLINE{
     $$ = get_instruction2($1, $2, $4);
+    if($$){
+      print_instruction($$);
+    }
   }
 ;
 
