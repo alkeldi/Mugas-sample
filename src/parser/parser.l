@@ -21,7 +21,7 @@
     ERROR(text, msg, line, column);
   }
   void DEBUG_LEX(char * fun_name, char * str){
-    DEBUG(fun_name, str);
+    // DEBUG(fun_name, str);
   }
 %}
 
@@ -52,7 +52,7 @@ NAME [._@$0-9a-zA-Z]+
 
 %%
 
-{HEX} {
+{HEX}|{DEC} {
   column += yyleng;
   DEBUG_LEX(NULL, "[HEX]");
   
@@ -60,29 +60,18 @@ NAME [._@$0-9a-zA-Z]+
   
   long long int dec = strtoll(yytext, NULL, 0);
   
-  if(!verify_number_size(dec)){
+  int sz = get_number_size(dec);
+  if(sz < 1 || sz > MAX_IMM_SIZE){
     ERROR_LEX(yytext, "integer overflow/underflow", line, column);
   }
-
-  yylval.integer = malloc(sizeof(integer_token_t));
-  yylval.integer->num = dec;
-  store_token(&yylval.integer->token, yytext, yyleng);
-  return INTEGER;
-}
-
-{DEC} {
-  column += yyleng;
-  DEBUG_LEX(NULL, "[DEC]");
-  long long int dec = strtoll(yytext, NULL, 0);
-
-  if(!verify_number_size(dec)){
-    ERROR_LEX(yytext, "integer overflow/underflow", line, column);
-  }
-
-  yylval.integer = malloc(sizeof(integer_token_t));
-  yylval.integer->num = dec;
-  store_token(&yylval.integer->token, yytext, yyleng);
   
+  yylval.imm = malloc(sizeof(instruction_imm_t_t));
+  memset(yylval.imm, 0, sizeof(instruction_imm_t_t));
+
+  yylval.imm->imm.size = sz;
+  memcpy(&yylval.imm->imm.data, &dec, MAX_IMM_SIZE);
+  store_token(&yylval.imm->token, yytext, yyleng);
+
   return INTEGER;
 }
 
@@ -182,8 +171,9 @@ NAME [._@$0-9a-zA-Z]+
   reg_t * reg = search_registers_table(yytext_capital);
   if(reg){
     DEBUG_LEX(NULL, "[REG]");
-    yylval.reg = malloc(sizeof(reg_token_t));
-    memcpy(&yylval.reg->reg, reg, sizeof(reg_t));
+    yylval.reg = malloc(sizeof(instruction_reg_t_t));
+    memset(yylval.reg, 0, sizeof(instruction_reg_t_t));
+    yylval.reg->reg = *reg;
     store_token(&yylval.reg->token, yytext, yyleng);
     return REG;
   }

@@ -2,25 +2,7 @@
 #define mugas_h
 #include <DLList.h>
 #include <TST.h>
-
-#define MAX_REG_NAME_LEN 7
-#define MAX_REG_TYPE_LEN 7
-#define MAX_HEX_ENCODING_LEN 63
-#define MAX_READABLE_ENCODING_LEN 63
-
-typedef struct reg_t
-{
-  unsigned char reg_value;
-  char reg_name[MAX_REG_NAME_LEN + 1];
-  char reg_type[MAX_REG_TYPE_LEN + 1];
-} reg_t;
-
-
-typedef struct inst_info_t
-{
-  char hex_encoding[MAX_HEX_ENCODING_LEN + 1];
-  char readable_encoding[MAX_READABLE_ENCODING_LEN + 1];
-} inst_info_t;
+#include <encoder.h>
 
 
 TST *instructions_names; /* table to have instructions names only (ie. mov)*/

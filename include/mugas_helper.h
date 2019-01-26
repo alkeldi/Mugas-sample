@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <parser.h>
 
+
 /* check if empty or commented line */
 static int is_ignored(char *line, size_t len)
 {
@@ -64,24 +65,24 @@ static void to_upper_case(char *src, char *dst)
 /* get size in bits of an int */
 static inline int get_number_size(long long int num){
   if(num <= 0xff && num >= -0xff)
-    return 8;
+    return 1;
   else if(num <= 0xffff && num >= -0xffff)
-    return 16;
+    return 2;
   else if(num <= 0xffffffff && num >= -0xffffffff)
-    return 32;
+    return 4;
   else if(num <= 0xffffffffffffffff && num >= -0xffffffffffffffff)
-    return 64;
+    return 8;
   else return -1;
 }
 
 /* check if size is within supported range */
-static inline int verify_number_size(long long int num){
-  /* currently, only 32bit numbers */
-  int sz = get_number_size(num);
-  if( sz == -1 || sz > 32)
-    return 0;
-  else return 1;
-}
+// static inline int verify_number_size(long long int num){
+//   /* currently, only 32bit numbers */
+//   int sz = get_number_size(num);
+//   if( sz == -1 || sz > 32)
+//     return 0;
+//   else return 1;
+// }
 
 /* debug */
 static void DEBUG(char * fun_name, char * str){
