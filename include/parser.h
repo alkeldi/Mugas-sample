@@ -42,5 +42,6 @@ typedef struct instruction_operand_t_t {
   };
 }instruction_operand_t_t;
 
-
+/******** functions ********/
+instruction_imm_t_t * reduce_math_expression(instruction_imm_t_t *imm1, instruction_imm_t_t *imm2, char operation);
 #endif

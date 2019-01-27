@@ -14,6 +14,32 @@
     instruction_imm_t_t * ss;
   }scaled_reg_t;
 
+  instruction_imm_t_t * create_imm(int32_t i){
+    int sz = get_number_size(i); //should always be a good size because i is of type int32_t
+    instruction_imm_t_t *imm = malloc(sizeof(instruction_imm_t_t));
+    memset(imm, 0, sizeof(instruction_imm_t_t));
+    memcpy(imm->imm.data, &i, MAX_IMM_SIZE);
+    imm->imm.size = sz;
+    return imm;
+  }
+  scaled_reg_t * create_scaled_reg(instruction_reg_t_t *index, instruction_imm_t_t *ss){
+    scaled_reg_t *scaled = malloc(sizeof(scaled_reg_t));
+    memset(scaled, 0, sizeof(scaled_reg_t));
+    scaled->index = index;
+    scaled->ss = ss;
+  }
+  instruction_imm_t_t * negate_expression(instruction_imm_t_t *exp){
+    //create another temp expression with value zero
+    instruction_imm_t_t *temp = malloc(sizeof(instruction_imm_t_t));
+    memset(&temp, 0, sizeof(instruction_imm_t_t));
+    temp->imm.size = 1;
+
+    //exp = 0 - exp
+    reduce_math_expression(temp, exp, '-');
+
+    return temp;
+  }
+
   instruction_imm_t_t * reduce_math_expression(instruction_imm_t_t *imm1, instruction_imm_t_t *imm2, char operation){
     integer i1, i2, result;
     memcpy(&i1, imm1->imm.data, MAX_IMM_SIZE);
@@ -50,25 +76,11 @@
 
   }
 
-  instruction_mem_t_t * handle_base_index_addressing(
-    instruction_reg_t_t *base,
-    scaled_reg_t *scaled_reg,
-    instruction_imm_t_t *disp
-  ){
+  instruction_mem_t_t * handle_base_index_addressing(instruction_reg_t_t *base, scaled_reg_t *scaled_reg, instruction_imm_t_t *disp){
 
   }
 
-  instruction_imm_t_t * negate_expression(instruction_imm_t_t *exp){
-    //create another temp expression with value zero
-    instruction_imm_t_t *temp = malloc(sizeof(instruction_imm_t_t));
-    memset(&temp, 0, sizeof(instruction_imm_t_t));
-    temp->imm.size = 1;
 
-    //exp = 0 - exp
-    reduce_math_expression(temp, exp, '-');
-
-    return temp;
-  }
 %}
 
 
@@ -162,14 +174,10 @@ memory:
 
 scaled_reg: 
   expresion MULTIPLY REG {
-    $$ = malloc(sizeof(scaled_reg_t));
-    $$->ss = $1;
-    $$->index = $3;
+    $$ = create_scaled_reg($3, $1);
   }
   |REG MULTIPLY expresion {
-    $$ = malloc(sizeof(scaled_reg_t));
-    $$->ss = $3;
-    $$->index = $1;
+    $$ = create_scaled_reg($1, $3);
   }
 ;
 
@@ -192,22 +200,16 @@ reg_addressing:
   }
 ;
 
-//TODO reg+reg+disp variations
 base_index_addressing: 
    scaled_reg {
      $$ = handle_base_index_addressing(NULL, $1, NULL);
   }
   |REG PLUS REG {
-    //base + index*1
     //create an immediate of value 1
-    instruction_imm_t_t *imm = malloc(sizeof(instruction_imm_t_t));
-    int num = 1;
-    memcpy(imm->imm.data, &num, MAX_IMM_SIZE);
+    instruction_imm_t_t *imm = create_imm(1);
 
     //create a scaled index with ss of 1 and index $3
-    scaled_reg_t *scaled = malloc(sizeof(scaled_reg_t));
-    scaled->index = $3;
-    scaled->ss = imm;
+    scaled_reg_t *scaled = create_scaled_reg($3, imm);
 
     $$ = handle_base_index_addressing($1, scaled, NULL);
   }
@@ -250,6 +252,14 @@ base_index_addressing:
   }
   |expresion PLUS scaled_reg PLUS REG {
     $$ = handle_base_index_addressing($5, $3, $1);
+  }
+  |REG PLUS REG PLUS expresion {
+  }
+  |REG PLUS expresion PLUS REG {
+  }
+  |REG MINUS expresion PLUS REG {
+  }
+  |expresion PLUS REG PLUS REG {
   }
 ;
 
