@@ -14,12 +14,21 @@
     instruction_imm_t_t * ss;
   }scaled_reg_t;
 
+  integer get_imm_value(instruction_imm_t_t *imm){
+    integer val;
+    memcpy(&val, imm->imm.data, MAX_IMM_SIZE);
+    return val;
+  }
+  void set_imm_value(instruction_imm_t_t *imm, int32_t val){
+    memcpy(imm->imm.data, &val, MAX_IMM_SIZE);
+    imm->imm.size = get_number_size(val); //should always be a good size because val is of type int32_t
+  }
+
+
   instruction_imm_t_t * create_imm(int32_t i){
-    int sz = get_number_size(i); //should always be a good size because i is of type int32_t
     instruction_imm_t_t *imm = malloc(sizeof(instruction_imm_t_t));
     memset(imm, 0, sizeof(instruction_imm_t_t));
-    memcpy(imm->imm.data, &i, MAX_IMM_SIZE);
-    imm->imm.size = sz;
+    set_imm_value(imm, i);
     return imm;
   }
   scaled_reg_t * create_scaled_reg(instruction_reg_t_t *index, instruction_imm_t_t *ss){
@@ -39,11 +48,12 @@
 
     return temp;
   }
+ 
 
   instruction_imm_t_t * reduce_math_expression(instruction_imm_t_t *imm1, instruction_imm_t_t *imm2, char operation){
     integer i1, i2, result;
-    memcpy(&i1, imm1->imm.data, MAX_IMM_SIZE);
-    memcpy(&i2, imm2->imm.data, MAX_IMM_SIZE);
+    i1 = get_imm_value(imm1);
+    i2 = get_imm_value(imm2);
 
     switch(operation){
       case '+': result = i1 + i2; break;
@@ -59,9 +69,7 @@
       ERROR_WITH_TOKEN(&imm1->token, "integer overflow/underflow.");
     }
 
-    imm1->imm.size = sz;
-    memcpy(imm1->imm.data, &result, MAX_IMM_SIZE);
-
+    set_imm_value(imm1, result);
     if(imm2->token.text){
       free(imm2->token.text);
       imm2->token.text = NULL;
@@ -73,6 +81,7 @@
   }
 
   instruction_mem_t_t * handle_reg_addressing(instruction_reg_t_t *reg, instruction_imm_t_t * disp){
+
 
   }
 
@@ -122,9 +131,7 @@ all: lines;
 
 lines: line | line lines;
 
-line: 
-  instruction{
-  };
+line:  instruction;
 
 instruction: 
   OPCODE NEWLINE{
@@ -164,6 +171,7 @@ operand:
   }
 ;
 memory: 
+//TODO handle sizes
   OPEN_BRACKET reg_addressing CLOSE_BRACKET{
     $$ = $2;
   }| 
@@ -205,12 +213,8 @@ base_index_addressing:
      $$ = handle_base_index_addressing(NULL, $1, NULL);
   }
   |REG PLUS REG {
-    //create an immediate of value 1
     instruction_imm_t_t *imm = create_imm(1);
-
-    //create a scaled index with ss of 1 and index $3
     scaled_reg_t *scaled = create_scaled_reg($3, imm);
-
     $$ = handle_base_index_addressing($1, scaled, NULL);
   }
   |REG PLUS scaled_reg {
@@ -254,12 +258,25 @@ base_index_addressing:
     $$ = handle_base_index_addressing($5, $3, $1);
   }
   |REG PLUS REG PLUS expresion {
+    instruction_imm_t_t *imm = create_imm(1);
+    scaled_reg_t *scaled = create_scaled_reg($3, imm);
+    $$ = handle_base_index_addressing($1, scaled, $5);
   }
   |REG PLUS expresion PLUS REG {
+    instruction_imm_t_t *imm = create_imm(1);
+    scaled_reg_t *scaled = create_scaled_reg($5, imm);
+    $$ = handle_base_index_addressing($1, scaled, $3);
   }
   |REG MINUS expresion PLUS REG {
+    instruction_imm_t_t *imm = create_imm(1);
+    scaled_reg_t *scaled = create_scaled_reg($5, imm);
+    negate_expression($3);
+    $$ = handle_base_index_addressing($1, scaled, $3);
   }
   |expresion PLUS REG PLUS REG {
+    instruction_imm_t_t *imm = create_imm(1);
+    scaled_reg_t *scaled = create_scaled_reg($5, imm);
+    $$ = handle_base_index_addressing($3, scaled, $1);
   }
 ;
 
