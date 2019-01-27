@@ -24,7 +24,6 @@
     imm->imm.size = get_number_size(val); //should always be a good size because val is of type int32_t
   }
 
-
   instruction_imm_t_t * create_imm(int32_t i){
     instruction_imm_t_t *imm = malloc(sizeof(instruction_imm_t_t));
     memset(imm, 0, sizeof(instruction_imm_t_t));
@@ -80,12 +79,159 @@
     return imm1;
   }
 
-  instruction_mem_t_t * handle_reg_addressing(instruction_reg_t_t *reg, instruction_imm_t_t * disp){
+  instruction_mem_t_t * handle_reg_addressing(instruction_reg_t_t *reg, instruction_imm_t_t * disp){       
+    if(!reg && !disp){
+      ERROR_WITH_TOKEN(NULL, "handle_reg_addressing -> both reg and disp are null.");
+    }
+    
+    //prepare
+    instruction_mem_t_t *mem = malloc(sizeof(instruction_mem_t_t));
+    memset(mem, 0, sizeof(instruction_mem_t_t));
 
+    //reg
+    if(reg){
+      mem->modrm.size = 1;
+      mem->modrm.rm = reg->reg.reg_value;
+    }
+
+    //disp
+    integer dispval = 0;
+    if(disp) {
+      mem->modrm.size = 1;
+      dispval = get_imm_value(disp);
+      memcpy(mem->disp.data, disp->imm.data, MAX_IMM_SIZE);
+      int sz = get_number_size(dispval);
+      switch(sz){
+        case 1: mem->disp.size = 1; mem->modrm.mod = 0b01;
+        case 2: mem->disp.size = 4; mem->modrm.mod = 0b10;
+        case 4: mem->disp.size = 4; mem->modrm.mod = 0b10;
+        default: ERROR_WITH_TOKEN(&disp->token, "integer overflow/underflow.");
+      }
+    }
+
+    //special cases
+    if(mem->modrm.rm == 0b100) //esp can't be addressed
+      ERROR_WITH_TOKEN(&reg->token, "Bad register.");
+    if(mem->modrm.rm == 0b101 && mem->disp.size == 0){ //ebp can be addressed only with a displacement
+      mem->disp.size = 1;
+      mem->modrm.mod = 0b01;
+    }
+    if(disp && dispval == 0 && reg->reg.reg_value != 0b101) //if displacement is zero, then ignore it except for ebp
+      mem->disp.size = 0;
 
   }
 
   instruction_mem_t_t * handle_base_index_addressing(instruction_reg_t_t *base, scaled_reg_t *scaled_reg, instruction_imm_t_t *disp){
+    if(!base && !scaled_reg && !disp){
+      ERROR_WITH_TOKEN(NULL, "handle_base_index_addressing -> base, scaled_reg, and disp are all null.");
+    }
+
+    //prepare
+    instruction_mem_t_t *mem = malloc(sizeof(instruction_mem_t_t));
+    memset(mem, 0, sizeof(instruction_mem_t_t));
+    mem->modrm.rm = 0b100;
+
+    //scaled reg
+    integer scale = 0;
+    if(scaled_reg){
+      scale = get_imm_value(scaled_reg->ss);
+      switch(scale){
+        case 0: return handle_reg_addressing(base, disp);
+        case 1: mem->sib.scale = 0b00;
+        case 2: mem->sib.scale = 0b01;
+        case 4: mem->sib.scale = 0b10;
+        case 8: mem->sib.scale = 0b11;
+      }
+      mem->sib.size = 1;
+      mem->modrm.size = 1;
+      mem->sib.index = scaled_reg->index->reg.reg_value;
+    }
+    else return handle_reg_addressing(base, disp);
+
+    //base
+    if(base){
+      mem->modrm.size = 1;
+      mem->sib.size = 1;
+      mem->sib.base = base->reg.reg_value;
+    }
+
+    //disp
+    integer dispval = 0;
+    if(disp) {
+      mem->modrm.size = 1;
+      mem->sib.size = 1;
+      dispval = get_imm_value(disp);
+      memcpy(mem->disp.data, disp->imm.data, MAX_IMM_SIZE);
+      int sz = get_number_size(dispval);
+      switch(sz){
+        case 1: mem->disp.size = 1; mem->modrm.mod = 0b01;
+        case 2: mem->disp.size = 4; mem->modrm.mod = 0b10;
+        case 4: mem->disp.size = 4; mem->modrm.mod = 0b10;
+        default: ERROR_WITH_TOKEN(&disp->token, "integer overflow/underflow.");
+      }
+    }
+
+
+    //special cases
+    if(scaled_reg && scale == 1){
+      mem->sib.scale = 0b00;
+      if(base){
+        instruction_reg_t_t reg1 = *base;
+        instruction_reg_t_t reg2 = *scaled_reg->index;
+        if(reg1.reg.reg_value == reg2.reg.reg_value){
+          if(reg1.reg.reg_value == 0b100) //esp can't be addressed as index
+            ERROR_WITH_TOKEN(NULL, "Bad register.");
+          else if(reg1.reg.reg_value == 0b101){
+            mem->sib.base = reg1.reg.reg_value;
+            mem->sib.index = reg2.reg.reg_value;
+            if(mem->disp.size == 0){ //ebp can be a base only with a displacement
+              mem->disp.size = 1;
+              mem->modrm.mod = 0b01;
+            }
+          }
+        }
+        else{
+          if(reg1.reg.reg_value == 0b100){
+            mem->sib.base = reg1.reg.reg_value;
+            mem->sib.index = reg2.reg.reg_value;            
+          }
+          else if(reg2.reg.reg_value == 0b100){
+            mem->sib.base = reg2.reg.reg_value;
+            mem->sib.index = reg1.reg.reg_value;   
+          }
+          else if(reg1.reg.reg_value == 0b101){
+            mem->sib.index = reg1.reg.reg_value;   
+            mem->sib.base = reg2.reg.reg_value;
+          }
+          else if(reg2.reg.reg_value == 0b101){
+            mem->sib.index = reg2.reg.reg_value;   
+            mem->sib.base = reg1.reg.reg_value;
+          }
+        }
+
+      }
+      else return handle_reg_addressing(scaled_reg->index, disp);
+    }
+    else if(scaled_reg){
+      if(!base){
+        mem->modrm.mod = 0b00;
+        mem->sib.base = 0b101;
+        mem->disp.size = 4;
+      }
+      
+    }
+
+    if(mem->sib.index == 0b100) //esp can't be addressed
+      ERROR_WITH_TOKEN(NULL, "Bad register.");
+    if(mem->sib.base == 0b101 && mem->disp.size == 0){ //ebp can be addressed only with a displacement
+      mem->disp.size = 1;
+      mem->modrm.mod = 0b01;
+    }
+    if(disp && dispval == 0 && mem->sib.base != 0b101) //if displacement is zero, then ignore it except for ebp as a base
+      mem->disp.size = 0;
+
+  
+    
 
   }
 

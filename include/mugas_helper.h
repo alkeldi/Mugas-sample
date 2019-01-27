@@ -75,15 +75,6 @@ static inline int get_number_size(long long int num){
   else return -1;
 }
 
-/* check if size is within supported range */
-// static inline int verify_number_size(long long int num){
-//   /* currently, only 32bit numbers */
-//   int sz = get_number_size(num);
-//   if( sz == -1 || sz > 32)
-//     return 0;
-//   else return 1;
-// }
-
 /* debug */
 static void DEBUG(char * fun_name, char * str){
   if(fun_name)
@@ -99,7 +90,12 @@ static void ERROR(char * text, char * msg, size_t line, size_t column){
 }
 
 static void ERROR_WITH_TOKEN(token_t *token, char * msg){
-  ERROR(token->text, msg, token->line, token->column);
+  if(token)
+    ERROR(token->text, msg, token->line, token->column);
+  else {
+    fprintf(stderr, "unexpected error: %s\n", msg);
+    exit(1);
+  }
 }
 
 static unsigned char hex_to_byte(char *hex)
