@@ -5,9 +5,12 @@
   #include <mugas_helper.h>
   #include <mugas.h>
   #include <encoder.h>
+  #include <elf_maker.h>
+  #include <elf_maker_special_sections.h>
   extern int yylex (void);
   extern size_t line;
   extern size_t column;
+  extern elf_section_t *text_section;
   void yyerror(char const *);
   typedef struct scaled_reg_t {
     instruction_reg_t_t * index;
@@ -19,7 +22,7 @@
   //TODO: esp can be addressed somehow
   integer get_imm_value(instruction_imm_t_t *imm){
     integer val;
-    memcpy(&val, imm->imm.data, MAX_IMM_SIZE);
+    memcpy(&val, imm->imm.data, imm->imm.size);
     return val;
   }
   void set_imm_value(instruction_imm_t_t *imm, int32_t val){
@@ -42,7 +45,7 @@
   instruction_imm_t_t * negate_expression(instruction_imm_t_t *exp){
     //create another temp expression with value zero
     instruction_imm_t_t *temp = malloc(sizeof(instruction_imm_t_t));
-    memset(&temp, 0, sizeof(instruction_imm_t_t));
+    memset(temp, 0, sizeof(instruction_imm_t_t));
     temp->imm.size = 1;
 
     //exp = 0 - exp
@@ -260,7 +263,7 @@
 %token <token> OPCODE DIRECTIVE LABEL
 
 /* punctuation */
-%token NEWLINE COLON COMMA
+%token NEWLINE COLON COMMA 
 
 /* calculator */
 %left <token> PLUS MINUS
@@ -283,26 +286,33 @@ all: lines;
 
 lines: line | line lines;
 
-line:  instruction;
+line: instruction {
+  //TODO add all mallocs into a list, then free them when error or a line is processed
+  elf_maker_add_section_entry(text_section, $1->data, $1->size);
+};
 
 instruction: 
-  OPCODE NEWLINE{
+  OPCODE NEWLINE {
     $$ = get_instruction0($1);
     if($$){
       print_instruction($$);
     }
+    else ERROR_WITH_TOKEN($1, "Either an error, or the instruction is not supported yest\n");
+    
   }|
   OPCODE operand NEWLINE{
     $$ = get_instruction1($1, $2);
     if($$){
       print_instruction($$);
     }
+    else ERROR_WITH_TOKEN($1, "Either an error, or the instruction is not supported yest\n");
   }|
   OPCODE operand COMMA operand NEWLINE{
     $$ = get_instruction2($1, $2, $4);
     if($$){
       print_instruction($$);
     }
+    else ERROR_WITH_TOKEN($1, "Either an error, or the instruction is not supported yest\n");
   }
 ;
 operand:

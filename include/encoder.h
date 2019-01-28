@@ -9,7 +9,7 @@
 #define MAX_REG_TYPE_LEN 7
 #define MAX_HEX_ENCODING_LEN 63
 #define MAX_READABLE_ENCODING_LEN 63
-typedef unsigned long int integer;
+typedef int32_t integer;
 
 typedef struct reg_t
 {

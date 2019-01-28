@@ -1,0 +1,2 @@
+run the example:
+    rm -f output a.out; ./asm < input; ld output; echo "____";./a.out; echo $?

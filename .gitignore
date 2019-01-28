@@ -2,6 +2,8 @@
 .vscode
 compile/*
 !compile/Makefile
+!compile/example
+!compile/README
 
 src/parser/*.c
 src/parser/*.h
