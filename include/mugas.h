@@ -1,69 +1,19 @@
 #ifndef mugas_h
 #define mugas_h
 #include <DLList.h>
-extern struct DLLNode *mugas_list;
-extern struct DLLNode *mugas_allocated_lists;
-extern struct DLLNode *mugas_allocated_values;
-struct operand_s
-{
-  int type;
-  char *strval;
-};
-struct datum_s
-{
-  int type;
-  char *strval;
-};
+#include <TST.h>
+#include <encoder.h>
 
-struct instruction_s
-{
-  char *opcode;
-  struct DLLNode *operands_list;
-};
 
-struct data_block_s
-{
-  char *data_type;
-  struct DLLNode *data_list;
-};
-
-struct label_s
-{
-  char *name;
-};
-
-struct variable_declaration_s
-{
-  char *modifier;
-  struct DLLNode *variables_list;
-};
-
-struct section_switch_s
-{
-  char *section;
-};
-
-enum line_type
-{
-  LINE_TYPE_LABEL,
-  LINE_TYPE_DATA_BLOCK,
-  LINE_TYPE_INSTRUCTION,
-  LINE_TYPE_VARIABLE_DECLARATION,
-  LINE_TYPE_SECTION_SWITCH
-};
-
-struct line_s
-{
-  enum line_type type;
-  union {
-    struct label_s *label;
-    struct data_block_s *data_block;
-    struct instruction_s *instruction;
-    struct variable_declaration_s *variable_declaration;
-    struct section_switch_s *section_switch;
-  };
-};
-
-void mugas_parse();
-void mugas_cleanup();
+TST *instructions_names; /* table to have instructions names only (ie. mov)*/
+TST *directives_names;   /* table to have directive names */
+TST *instructions_table; /* table to have instructions_table_entry_t struct  */
+TST *registers_table;    /* table to have reg_t struct*/
+extern void mugas_init();
+extern void mugas_parse();
+extern void mugas_cleanup();
+extern int is_instruction_name(char *key);
+extern int is_directive_name(char *key);
+extern reg_t *search_registers_table(char *key);
+extern inst_info_t * search_instructions_table(char *key);
 #endif

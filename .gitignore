@@ -1,6 +1,8 @@
 .DS_Store
 .vscode
-compile/asm
+compile/*
+!compile/Makefile
+
 src/parser/*.c
 src/parser/*.h
 obj
