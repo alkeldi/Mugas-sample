@@ -218,6 +218,7 @@ NAME [._@$0-9a-zA-Z]+
 {COMMENT} {
   column += yyleng;
 }
+
 . {
   column += yyleng;
   ERROR_LEX(yytext, "unknown symbol", line, column - yyleng);

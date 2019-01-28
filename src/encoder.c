@@ -44,7 +44,7 @@ instruction_t *_make_instruction(
     error = 5;
   else if (!imm || (imm->size != 0 && imm->size != 1 && imm->size != 2 && imm->size != 4))
     error = 6;
-  
+
   /* action when error */
   if (error)
   {
@@ -92,6 +92,7 @@ instruction_t *make_instruction(formatted_instruction_t *formatted)
 {
   if (!formatted)
     return NULL;
+
   return _make_instruction(&formatted->prefix, &formatted->opcode, &formatted->modrm,
                            &formatted->sib, &formatted->disp, &formatted->imm);
 }
@@ -176,6 +177,10 @@ int fill_formatted_instruction_with_defaults(formatted_instruction_t *formatted,
         }
         else return 0;
       }
+      else if(token[0] == '/' && token[1] == '+'){
+        fprintf(stderr, "fatal: this is a known error that needs to be fixed\n");
+        exit(1);
+      }
       else if (token[0] == 'i' && look_for_imm)
       {
         switch (token[1])
@@ -216,5 +221,6 @@ int init_formatted_instruction(formatted_instruction_t *formatted, char *key){
 
   if(!fill_formatted_instruction_with_defaults(formatted, info->hex_encoding))
     return 0;
+
   return 1;
 }
