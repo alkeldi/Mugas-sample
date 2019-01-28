@@ -64,13 +64,13 @@ static void to_upper_case(char *src, char *dst)
 
 /* get size in bits of an int */
 static inline int get_number_size(long long int num){
-  if(num <= 0xff && num >= -0xff)
+  if(num <= 0xff)
     return 1;
-  else if(num <= 0xffff && num >= -0xffff)
+  else if(num <= 0xffff)
     return 2;
-  else if(num <= 0xffffffff && num >= -0xffffffff)
+  else if(num <= 0xffffffff)
     return 4;
-  else if(num <= 0xffffffffffffffff && num >= -0xffffffffffffffff)
+  else if(num <= 0xffffffffffffffff)
     return 8;
   else return -1;
 }

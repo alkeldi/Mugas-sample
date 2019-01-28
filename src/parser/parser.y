@@ -14,6 +14,8 @@
     instruction_imm_t_t * ss;
   }scaled_reg_t;
 
+  //TODO: better tokens handling
+
   integer get_imm_value(instruction_imm_t_t *imm){
     integer val;
     memcpy(&val, imm->imm.data, MAX_IMM_SIZE);
@@ -65,7 +67,7 @@
 
     int sz = get_number_size(result);
     if(sz < 1 || sz > MAX_IMM_SIZE){
-      ERROR_WITH_TOKEN(&imm1->token, "integer overflow/underflow.");
+      ERROR_WITH_TOKEN(&imm1->token, "reduce_math_expression: integer overflow/underflow.");
     }
 
     set_imm_value(imm1, result);
@@ -79,6 +81,7 @@
     return imm1;
   }
 
+  //TODO: carefully review
   instruction_mem_t_t * handle_reg_addressing(instruction_reg_t_t *reg, instruction_imm_t_t * disp){       
     if(!reg && !disp){
       ERROR_WITH_TOKEN(NULL, "handle_reg_addressing -> both reg and disp are null.");
@@ -102,10 +105,10 @@
       memcpy(mem->disp.data, disp->imm.data, MAX_IMM_SIZE);
       int sz = get_number_size(dispval);
       switch(sz){
-        case 1: mem->disp.size = 1; mem->modrm.mod = 0b01;
-        case 2: mem->disp.size = 4; mem->modrm.mod = 0b10;
-        case 4: mem->disp.size = 4; mem->modrm.mod = 0b10;
-        default: ERROR_WITH_TOKEN(&disp->token, "integer overflow/underflow.");
+        case 1: mem->disp.size = 1; mem->modrm.mod = 0b01; break;
+        case 2: mem->disp.size = 4; mem->modrm.mod = 0b10; break;
+        case 4: mem->disp.size = 4; mem->modrm.mod = 0b10; break;
+        default: ERROR_WITH_TOKEN(&disp->token, "handle_reg_addressing:integer overflow/underflow.");
       }
     }
 
@@ -119,8 +122,11 @@
     if(disp && dispval == 0 && reg->reg.reg_value != 0b101) //if displacement is zero, then ignore it except for ebp
       mem->disp.size = 0;
 
+
+    return mem;
   }
 
+  //TODO: carefully review
   instruction_mem_t_t * handle_base_index_addressing(instruction_reg_t_t *base, scaled_reg_t *scaled_reg, instruction_imm_t_t *disp){
     if(!base && !scaled_reg && !disp){
       ERROR_WITH_TOKEN(NULL, "handle_base_index_addressing -> base, scaled_reg, and disp are all null.");
@@ -132,19 +138,19 @@
     mem->modrm.rm = 0b100;
 
     //scaled reg
-    integer scale = 0;
+    unsigned scale = 0;
     if(scaled_reg){
-      scale = get_imm_value(scaled_reg->ss);
-      switch(scale){
-        case 0: return handle_reg_addressing(base, disp);
-        case 1: mem->sib.scale = 0b00;
-        case 2: mem->sib.scale = 0b01;
-        case 4: mem->sib.scale = 0b10;
-        case 8: mem->sib.scale = 0b11;
-      }
+      scale = (unsigned)get_imm_value(scaled_reg->ss); //careful
+      if(scale == 0) return handle_reg_addressing(base, disp);
+      else if(scale == 1) mem->sib.scale = 0b00;
+      else if(scale == 2) mem->sib.scale = 0b01;
+      else if(scale == 4) mem->sib.scale = 0b10;
+      else if(scale == 8) mem->sib.scale = 0b11;
+      else ERROR_WITH_TOKEN(NULL, "handle_base_index_addressing -> bad scale.");
       mem->sib.size = 1;
       mem->modrm.size = 1;
       mem->sib.index = scaled_reg->index->reg.reg_value;
+
     }
     else return handle_reg_addressing(base, disp);
 
@@ -164,13 +170,12 @@
       memcpy(mem->disp.data, disp->imm.data, MAX_IMM_SIZE);
       int sz = get_number_size(dispval);
       switch(sz){
-        case 1: mem->disp.size = 1; mem->modrm.mod = 0b01;
-        case 2: mem->disp.size = 4; mem->modrm.mod = 0b10;
-        case 4: mem->disp.size = 4; mem->modrm.mod = 0b10;
-        default: ERROR_WITH_TOKEN(&disp->token, "integer overflow/underflow.");
+        case 1: mem->disp.size = 1; mem->modrm.mod = 0b01; break;
+        case 2: mem->disp.size = 4; mem->modrm.mod = 0b10; break;
+        case 4: mem->disp.size = 4; mem->modrm.mod = 0b10; break;
+        default: ERROR_WITH_TOKEN(&disp->token, "handle_base_index_addressing: integer overflow/underflow.");
       }
     }
-
 
     //special cases
     if(scaled_reg && scale == 1){
@@ -230,9 +235,8 @@
     if(disp && dispval == 0 && mem->sib.base != 0b101) //if displacement is zero, then ignore it except for ebp as a base
       mem->disp.size = 0;
 
-  
-    
 
+    return mem;
   }
 
 
@@ -245,6 +249,7 @@
   struct instruction_mem_t_t *mem;
   struct scaled_reg_t *scaled_reg;
   struct instruction_operand_t_t *operand;
+  struct instruction_t *instruction;
   struct token_t *token;
 }
 
@@ -281,16 +286,16 @@ line:  instruction;
 
 instruction: 
   OPCODE NEWLINE{
-    // $$ = get_instruction0($1);
-    // if($$){
-    //   print_instruction($$);
-    // }
+    $$ = get_instruction0($1);
+    if($$){
+      print_instruction($$);
+    }
   }|
   OPCODE operand NEWLINE{
-    // $$ = get_instruction1($1, $2);
-    // if($$){
-    //   print_instruction($$);
-    // }
+    $$ = get_instruction1($1, $2);
+    if($$){
+      print_instruction($$);
+    }
   }|
   OPCODE operand COMMA operand NEWLINE{
     // $$ = get_instruction2($1, $2, $4);
