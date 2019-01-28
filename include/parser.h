@@ -46,5 +46,6 @@ typedef struct instruction_operand_t_t {
 instruction_imm_t_t * reduce_math_expression(instruction_imm_t_t *imm1, instruction_imm_t_t *imm2, char operation);
 instruction_t * get_instruction0(token_t *opcode);
 instruction_t * get_instruction1(token_t *opcode, instruction_operand_t_t *operand1);
+instruction_t * get_instruction2(token_t *opcode, instruction_operand_t_t *operand1, instruction_operand_t_t *operand2);
 
 #endif

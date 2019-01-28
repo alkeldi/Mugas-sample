@@ -162,7 +162,7 @@ int fill_formatted_instruction_with_defaults(formatted_instruction_t *formatted,
       {
         if (token[1] == 'r')
         {
-          formatted->modrm.reg_op = 0;
+          // formatted->modrm.reg_op = 0;
           formatted->modrm.size = 1;
           look_for_modrm = 0;
           continue;

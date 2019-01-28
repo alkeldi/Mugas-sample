@@ -15,7 +15,8 @@
   }scaled_reg_t;
 
   //TODO: better tokens handling
-
+  //TODO: make numbers signed
+  //TODO: esp can be addressed somehow
   integer get_imm_value(instruction_imm_t_t *imm){
     integer val;
     memcpy(&val, imm->imm.data, MAX_IMM_SIZE);
@@ -298,10 +299,10 @@ instruction:
     }
   }|
   OPCODE operand COMMA operand NEWLINE{
-    // $$ = get_instruction2($1, $2, $4);
-    // if($$){
-    //   print_instruction($$);
-    // }
+    $$ = get_instruction2($1, $2, $4);
+    if($$){
+      print_instruction($$);
+    }
   }
 ;
 operand:
