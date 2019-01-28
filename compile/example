@@ -4,3 +4,4 @@ add ebx, 12
 add ebx, 1555
 mov ebx, -1
 int 0x80
+ha ebx,
